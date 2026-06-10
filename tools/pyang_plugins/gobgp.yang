@@ -1552,11 +1552,6 @@ module gobgp {
         "Detection time multiplier.";
       reference "RFC 5880 §6.8.5";
     }
-
-    leaf bind-interface {
-      description "Interface name for binding.";
-      type string;
-    }
   }
 
   grouping gobgp-bfd-state {

@@ -67,7 +67,7 @@ type bfdPeer struct {
 	stats bfdPeerStats
 }
 
-func NewBfdPeer(ps peerState, logger *slog.Logger, peerAddress netip.Addr, config oc.BfdConfig) *bfdPeer {
+func NewBfdPeer(ps peerState, logger *slog.Logger, peerAddress netip.Addr, config oc.BfdConfig, bindInterface string) *bfdPeer {
 	peerPort := int(config.Port)
 	if peerPort == 0 {
 		peerPort = BfdServerPort
@@ -78,7 +78,7 @@ func NewBfdPeer(ps peerState, logger *slog.Logger, peerAddress netip.Addr, confi
 		logger:        logger,
 		peerAddress:   peerAddress,
 		peerPort:      peerPort,
-		bindInterface: config.BindInterface,
+		bindInterface: bindInterface,
 
 		myDiscriminator: randomBFDMyDiscriminator(),
 		multiplier:      defaultMultiplier,

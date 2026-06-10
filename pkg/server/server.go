@@ -2602,7 +2602,7 @@ func (s *BgpServer) StartBgp(ctx context.Context, r *api.StartBgpRequest) error 
 		table.SelectionOptions = c.RouteSelectionOptions.Config
 		table.UseMultiplePaths = c.UseMultiplePaths.Config
 		if s.bfdServer != nil {
-			if err := s.bfdServer.Start(ctx, oc.BfdConfig{Port: BfdServerPort, BindInterface: g.BindToDevice}); err != nil {
+			if err := s.bfdServer.Start(ctx, oc.BfdConfig{Port: BfdServerPort}, g.BindToDevice); err != nil {
 				return err
 			}
 		}
@@ -3453,11 +3453,7 @@ func (s *BgpServer) addNeighbor(c *oc.Neighbor) error {
 			return fmt.Errorf("failed to parse IP address: %v", err)
 		}
 
-		if c.Transport.Config.BindInterface != "" && c.Bfd.Config.BindInterface == "" {
-			c.Bfd.Config.BindInterface = c.Transport.Config.BindInterface
-		}
-
-		if err := s.bfdServer.AddPeer(context.Background(), ipAddr, c.Bfd.Config); err != nil {
+		if err := s.bfdServer.AddPeer(context.Background(), ipAddr, c.Bfd.Config, c.Transport.Config.BindInterface); err != nil {
 			s.logger.Warn("failed to add BFD peer",
 				slog.String("Topic", "Peer"),
 				slog.String("Key", addr),
@@ -3483,8 +3479,16 @@ func apiBfdSessionStateToOC(state api.BfdSessionState) oc.BfdSessionState {
 	}
 }
 
-func (s *BgpServer) updateBfdPeer(addr string, oldConfig, newConfig oc.BfdConfig) error {
+func (s *BgpServer) updateBfdPeer(
+	addr string,
+	oldConfig, newConfig oc.BfdConfig,
+	oldBindInterface, newBindInterface string,
+) error {
 	if s.bfdServer == nil || oldConfig.Equal(&newConfig) {
+		return nil
+	}
+
+	if oldBindInterface == newBindInterface {
 		return nil
 	}
 
@@ -3500,7 +3504,7 @@ func (s *BgpServer) updateBfdPeer(addr string, oldConfig, newConfig oc.BfdConfig
 	}
 
 	if newConfig.Enabled {
-		if err := s.bfdServer.AddPeer(context.Background(), ipAddr, newConfig); err != nil {
+		if err := s.bfdServer.AddPeer(context.Background(), ipAddr, newConfig, newBindInterface); err != nil {
 			return err
 		}
 	}
@@ -3833,7 +3837,11 @@ func (s *BgpServer) updateNeighbor(c *oc.Neighbor) (needsSoftResetIn bool, err e
 		peer.fsm.pConf.Update(&conf)
 		peer.fsm.lock.Unlock()
 		if bfdConfigChanged {
-			err = s.updateBfdPeer(addr, original.Bfd.Config, c.Bfd.Config)
+			err = s.updateBfdPeer(
+				addr,
+				original.Bfd.Config, c.Bfd.Config,
+				original.Transport.Config.BindInterface, c.Transport.Config.BindInterface,
+			)
 		}
 		if isLimit {
 			if err == nil {
