@@ -3484,11 +3484,7 @@ func (s *BgpServer) updateBfdPeer(
 	oldConfig, newConfig oc.BfdConfig,
 	oldBindInterface, newBindInterface string,
 ) error {
-	if s.bfdServer == nil || oldConfig.Equal(&newConfig) {
-		return nil
-	}
-
-	if oldBindInterface == newBindInterface {
+	if s.bfdServer == nil || (oldConfig.Equal(&newConfig) && oldBindInterface == newBindInterface) {
 		return nil
 	}
 
