@@ -1315,6 +1315,10 @@ module gobgp {
     leaf-list local-address {
         type inet:ip-address;
     }
+    leaf bind-interface {
+      description "Interface name for binding.";
+      type string;
+    }
   }
 
   augment "/bgp:bgp/bgp:global/bgp:config" {
@@ -1516,7 +1520,7 @@ module gobgp {
       default 3784;
       description
         "Destination UDP port for BFD control packets.
-        Using a non-default port deviates from RFC 5881, 
+        Using a non-default port deviates from RFC 5881,
         which explicitly mandates destination UDP port 3784.";
       reference "RFC 5881 §4";
     }
@@ -1547,6 +1551,11 @@ module gobgp {
       description
         "Detection time multiplier.";
       reference "RFC 5880 §6.8.5";
+    }
+
+    leaf bind-interface {
+      description "Interface name for binding.";
+      type string;
     }
   }
 
