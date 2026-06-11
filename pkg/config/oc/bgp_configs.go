@@ -5090,6 +5090,9 @@ type GlobalState struct {
 	// original -> gobgp:local-address
 	// original type is list of inet:ip-address
 	LocalAddressList []netip.Addr `mapstructure:"local-address-list" json:"local-address-list,omitempty"`
+	// original -> gobgp:bind-interface
+	// Interface name for binding.
+	BindInterface string `mapstructure:"bind-interface" json:"bind-interface,omitempty"`
 }
 
 // struct for container bgp:config.
@@ -5110,6 +5113,9 @@ type GlobalConfig struct {
 	// original -> gobgp:local-address
 	// original type is list of inet:ip-address
 	LocalAddressList []netip.Addr `mapstructure:"local-address-list" json:"local-address-list,omitempty"`
+	// original -> gobgp:bind-interface
+	// Interface name for binding.
+	BindInterface string `mapstructure:"bind-interface" json:"bind-interface,omitempty"`
 }
 
 func (lhs *GlobalConfig) Equal(rhs *GlobalConfig) bool {
@@ -5132,6 +5138,9 @@ func (lhs *GlobalConfig) Equal(rhs *GlobalConfig) bool {
 		if l != rhs.LocalAddressList[idx] {
 			return false
 		}
+	}
+	if lhs.BindInterface != rhs.BindInterface {
+		return false
 	}
 	return true
 }
