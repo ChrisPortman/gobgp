@@ -225,7 +225,6 @@ func (p *bfdPeer) startClient() {
 		return
 	}
 
-	// Assert the connection to *net.UDPConn if you need UDP-specific methods
 	udpConn, ok := conn.(*net.UDPConn)
 	if !ok {
 		p.logger.Warn("Can't dial UDP",
